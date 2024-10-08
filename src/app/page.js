@@ -57,11 +57,10 @@ const HomePage = () => {
   };
 
   if (loading) {
-    // Loader UI when loading state is true
     return (
       <div className={styles.loaderContainer}>
         <div className={styles.loader}></div>
-        <p>Loading blog posts...</p>
+        <p>Loading Posts...</p>
       </div>
     );
   }
