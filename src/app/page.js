@@ -1,95 +1,102 @@
-import Image from "next/image";
+"use client";
+
+import axios from "axios";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import styles from "./page.module.css";
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+const HomePage = () => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        const response = await axios.get(
+          "https://nextupgrad.com/wp-json/wp/v2/posts"
+        );
+
+        const postsWithImages = await Promise.all(
+          response.data.map(async (post) => {
+            if (post.featured_media) {
+              try {
+                const imageResponse = await axios.get(
+                  `https://nextupgrad.com/wp-json/wp/v2/media/${post.featured_media}`
+                );
+                return {
+                  ...post,
+                  featured_image: imageResponse.data.source_url,
+                };
+              } catch (error) {
+                console.error("Error fetching featured image:", error);
+                return { ...post, featured_image: null };
+              }
+            }
+            return { ...post, featured_image: null };
+          })
+        );
+
+        setPosts(postsWithImages);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+        setError("Failed to load posts.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPosts();
+  }, []);
+
+  const trimExcerpt = (excerpt, wordCount) => {
+    const words = excerpt.split(" ");
+    return words.length > wordCount
+      ? words.slice(0, wordCount).join(" ") + "..."
+      : excerpt;
+  };
+
+  if (loading) {
+    // Loader UI when loading state is true
+    return (
+      <div className={styles.loaderContainer}>
+        <div className={styles.loader}></div>
+        <p>Loading blog posts...</p>
+      </div>
+    );
+  }
+
+  if (error) return <div>{error}</div>;
+
+  return (
+    <div className={styles.container}>
+      <h1>Blog Posts From Nextupgrad</h1>
+      <div className={styles.cardContainer}>
+        {posts.map((post) => (
+          <Link
+            key={post.id}
+            href={`/posts/${post.id}`}
+            className={styles.card}
           >
-            <Image
-              className={styles.logo}
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            {post.featured_image && (
+              <img
+                src={post.featured_image}
+                alt={post.title.rendered}
+                className={styles.image}
+              />
+            )}
+            <h2>{post.title.rendered}</h2>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: trimExcerpt(post.excerpt.rendered || "", 20),
+              }}
             />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <p>Read More</p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
-}
+};
+
+export default HomePage;
