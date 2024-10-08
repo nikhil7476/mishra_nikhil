@@ -29,6 +29,8 @@ const PostDetailPage = ({ params }) => {
   }, [id]);
 
   const fetchFeaturedImage = async (mediaId) => {
+    if (!mediaId) return null;
+
     try {
       const response = await axios.get(
         `https://nextupgrad.com/wp-json/wp/v2/media/${mediaId}`
@@ -75,14 +77,14 @@ const FeaturedImage = ({ mediaId }) => {
     fetchImage();
   }, [mediaId]);
 
-  return (
-    imageUrl && (
-      <img src={imageUrl} alt="Featured" className={styles.featuredImage} />
-    )
-  );
+  if (!imageUrl) return null;
+
+  return <img src={imageUrl} alt="Featured" className={styles.featuredImage} />;
 };
 
 const fetchFeaturedImage = async (mediaId) => {
+  if (!mediaId) return null;
+
   try {
     const response = await axios.get(
       `https://nextupgrad.com/wp-json/wp/v2/media/${mediaId}`
