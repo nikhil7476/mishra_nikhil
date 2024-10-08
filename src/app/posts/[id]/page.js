@@ -11,36 +11,32 @@ const PostDetailPage = ({ params }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchPost() {
+    let isMounted = true;
+
+    const fetchPost = async () => {
       try {
-        const response = await axios.get(
-          `https://nextupgrad.com/wp-json/wp/v2/posts/${id}`
-        );
-        setPost(response.data);
-      } catch (error) {
-        console.error("Error fetching post:", error);
-        setError("Failed to load post.");
+        const response = await axios.get(`https://nextupgrad.com/wp-json/wp/v2/posts/${id}`);
+        if (isMounted) {
+          setPost(response.data);
+        }
+      } catch (err) {
+        console.error("Error fetching post:", err);
+        if (isMounted) {
+          setError("Failed to load post.");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    }
+    };
 
     fetchPost();
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
-
-  const fetchFeaturedImage = async (mediaId) => {
-    if (!mediaId) return null;
-
-    try {
-      const response = await axios.get(
-        `https://nextupgrad.com/wp-json/wp/v2/media/${mediaId}`
-      );
-      return response.data.source_url;
-    } catch (error) {
-      console.error("Error fetching featured image:", error);
-      return null;
-    }
-  };
 
   if (loading) {
     return (
@@ -51,16 +47,15 @@ const PostDetailPage = ({ params }) => {
     );
   }
 
-  if (error) return <div>{error}</div>;
+  if (error) {
+    return <div className={styles.error}>{error}</div>;
+  }
 
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>{post.title.rendered}</h1>
       {post.featured_media && <FeaturedImage mediaId={post.featured_media} />}
-      <div
-        className={styles.content}
-        dangerouslySetInnerHTML={{ __html: post.content.rendered }}
-      />
+      <div className={styles.content} dangerouslySetInnerHTML={{ __html: post.content.rendered }} />
     </div>
   );
 };
@@ -69,10 +64,16 @@ const FeaturedImage = ({ mediaId }) => {
   const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
-    async function fetchImage() {
-      const url = await fetchFeaturedImage(mediaId);
-      setImageUrl(url);
-    }
+    const fetchImage = async () => {
+      if (!mediaId) return;
+
+      try {
+        const response = await axios.get(`https://nextupgrad.com/wp-json/wp/v2/media/${mediaId}`);
+        setImageUrl(response.data.source_url);
+      } catch (error) {
+        console.error("Error fetching featured image:", error);
+      }
+    };
 
     fetchImage();
   }, [mediaId]);
@@ -80,20 +81,6 @@ const FeaturedImage = ({ mediaId }) => {
   if (!imageUrl) return null;
 
   return <img src={imageUrl} alt="Featured" className={styles.featuredImage} />;
-};
-
-const fetchFeaturedImage = async (mediaId) => {
-  if (!mediaId) return null;
-
-  try {
-    const response = await axios.get(
-      `https://nextupgrad.com/wp-json/wp/v2/media/${mediaId}`
-    );
-    return response.data.source_url;
-  } catch (error) {
-    console.error("Error fetching featured image:", error);
-    return null;
-  }
 };
 
 export default PostDetailPage;
