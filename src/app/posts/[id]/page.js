@@ -17,7 +17,9 @@ const PostDetailPage = ({ params }) => {
       try {
         const response = await axios.get(`https://nextupgrad.com/wp-json/wp/v2/posts/${id}`);
         if (isMounted) {
-          setPost(response.data);
+          // Fix image URLs in the content
+          const contentWithAbsoluteUrls = fixImageUrls(response.data.content.rendered);
+          setPost({ ...response.data, content: contentWithAbsoluteUrls });
         }
       } catch (err) {
         console.error("Error fetching post:", err);
@@ -38,6 +40,13 @@ const PostDetailPage = ({ params }) => {
     };
   }, [id]);
 
+  // Function to fix relative image URLs
+  const fixImageUrls = (htmlContent) => {
+    return htmlContent.replace(/src="(\/[^"]+)"/g, (match, p1) => {
+      return `src="https://nextupgrad.com${p1}"`; // Append base URL to relative paths
+    });
+  };
+
   if (loading) {
     return (
       <div className={styles.loaderContainer}>
@@ -55,7 +64,7 @@ const PostDetailPage = ({ params }) => {
     <div className={styles.container}>
       <h1 className={styles.title}>{post.title.rendered}</h1>
       {post.featured_media && <FeaturedImage mediaId={post.featured_media} />}
-      <div className={styles.content} dangerouslySetInnerHTML={{ __html: post.content.rendered }} />
+      <div className={styles.content} dangerouslySetInnerHTML={{ __html: post.content }} />
     </div>
   );
 };
