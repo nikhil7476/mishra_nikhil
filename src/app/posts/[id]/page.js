@@ -15,7 +15,7 @@ const PostDetailPage = ({ params }) => {
 
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`https://nextupgrad.com/wp-json/wp/v2/posts/${id}`);
+        const response = await axios.get(`https://web.nextupgrad.us/wp-json/wp/v2/posts/${id}`);
         if (isMounted) {
           // Fix image URLs in the content
           const contentWithAbsoluteUrls = fixImageUrls(response.data.content.rendered);
