@@ -22,7 +22,7 @@ const HomePage = () => {
             if (post.featured_media) {
               try {
                 const imageResponse = await axios.get(
-                  `https://nextupgrad.com/wp-json/wp/v2/media/${post.featured_media}`
+                  `https://web.nextupgrad.us/wp-json/wp/v2/media/${post.featured_media}`
                 );
                 return {
                   ...post,
