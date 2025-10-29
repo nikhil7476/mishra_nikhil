@@ -14,7 +14,7 @@ const HomePage = () => {
     async function fetchPosts() {
       try {
         const response = await axios.get(
-          "https://nextupgrad.com/wp-json/wp/v2/posts"
+          "https://web.nextupgrad.us/wp-json/wp/v2/posts"
         );
 
         const postsWithImages = await Promise.all(
