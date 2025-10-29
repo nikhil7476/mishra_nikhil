@@ -43,7 +43,7 @@ const PostDetailPage = ({ params }) => {
   // Function to fix relative image URLs
   const fixImageUrls = (htmlContent) => {
     return htmlContent.replace(/src="(\/[^"]+)"/g, (match, p1) => {
-      return `src="https://nextupgrad.com${p1}"`; // Append base URL to relative paths
+      return `src="https://web.nextupgrad.us${p1}"`; // Append base URL to relative paths
     });
   };
 
@@ -77,7 +77,7 @@ const FeaturedImage = ({ mediaId }) => {
       if (!mediaId) return;
 
       try {
-        const response = await axios.get(`https://nextupgrad.com/wp-json/wp/v2/media/${mediaId}`);
+        const response = await axios.get(`https://web.nextupgrad.us/wp-json/wp/v2/media/${mediaId}`);
         setImageUrl(response.data.source_url);
       } catch (error) {
         console.error("Error fetching featured image:", error);
